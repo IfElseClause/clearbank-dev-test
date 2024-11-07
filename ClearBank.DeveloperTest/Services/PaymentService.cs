@@ -22,18 +22,28 @@ namespace ClearBank.DeveloperTest.Services
         {
             using (var scope = new TransactionScope())
             {
-                Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
+                try
+                {
+                    Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
 
-                IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
+                    IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
 
-                if (account == null
-                    || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
+                    if (account == null
+                        || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
+                    {
+                        return new MakePaymentResult() { Success = false };
+                    }
+
+                    var updatedAccount = account with { Balance = account.Balance - request.Amount };
+
+                    _accountDataStore.UpdateAccount(updatedAccount);
+
+                    scope.Complete();
+                }
+                catch
                 {
                     return new MakePaymentResult() { Success = false };
                 }
-
-                account.Balance -= request.Amount;
-                _accountDataStore.UpdateAccount(account);
             }
 
             return new MakePaymentResult() { Success = true };

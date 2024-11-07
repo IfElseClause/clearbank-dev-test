@@ -1,10 +1,10 @@
 ﻿namespace ClearBank.DeveloperTest.Types
 {
-    public class Account
-    {
-        public string AccountNumber { get; set; }
-        public decimal Balance { get; set; }
-        public AccountStatus Status { get; set; }
-        public AllowedPaymentSchemes AllowedPaymentSchemes { get; set; }
-    }
+    public record Account(
+        string AccountNumber,
+        decimal Balance,
+        AccountStatus Status,
+        AllowedPaymentSchemes AllowedPaymentSchemes
+    );
+
 }

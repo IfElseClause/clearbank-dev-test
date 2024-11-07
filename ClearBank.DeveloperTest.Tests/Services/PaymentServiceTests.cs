@@ -63,8 +63,8 @@ namespace ClearBank.DeveloperTest.Tests.Services
 
             // Assert
             result.Success.Should().BeTrue();
-            account.Balance.Should().Be(balance - amount);
-            _accountDataStore.Received(1).UpdateAccount(account);
+            account.Balance.Should().Be(balance);
+            _accountDataStore.Received(1).UpdateAccount(Arg.Is<Account>(x => x.Balance == balance - amount));
         }
 
         [Theory, AutoData]
@@ -173,7 +173,8 @@ namespace ClearBank.DeveloperTest.Tests.Services
 
             // Assert
             result.Success.Should().BeTrue();
-            account.Balance.Should().Be(balance - amount);
+            account.Balance.Should().Be(balance);
+            _accountDataStore.Received(1).UpdateAccount(Arg.Is<Account>(x => x.Balance == balance - amount));
         }
 
         [Theory, AutoData]
@@ -214,7 +215,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             var result = _sut.MakePayment(request);
 
             // Assert
-            _accountDataStore.Received(1).UpdateAccount(account);
+            _accountDataStore.Received(1).UpdateAccount(Arg.Is<Account>(x => x.Balance == balance - amount));
         }
 
         [Theory, AutoData]
@@ -252,7 +253,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(validator);
 
             _accountDataStore
-                .When(x => x.UpdateAccount(account))
+                .When(x => x.UpdateAccount(Arg.Any<Account>()))
                 .Do(_ => throw new Exception("Simulated failure during transaction"));
 
             // Act
