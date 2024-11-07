@@ -3,97 +3,217 @@ using AutoFixture.Xunit2;
 using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Services;
 using ClearBank.DeveloperTest.Types;
+using ClearBank.DeveloperTest.Validators;
 using FluentAssertions;
 using NSubstitute;
 using Xunit;
 
 namespace ClearBank.DeveloperTest.Tests.Services
 {
-    /*
-     * More tests should be added to cover more scenarios.
-     */
-
     public class PaymentServiceTests
     {
-        [Theory]
-        [AutoData]
-        public void MakePayment_WithValidRequst_ReturnsSuccessful(
-            PaymentService sut,
-            IFixture fixture)
-        {
-            // Arrange
-            var request = fixture.Create<MakePaymentRequest>();
+        private readonly IAccountDataStore _accountDataStore;
+        private readonly IPaymentSchemeValidatorFactory _validatorFactory;
+        private readonly PaymentService _sut;
 
-            // Act
-            var result = sut.MakePayment(request: request);
-            
-            // Assert
-            result.Should().NotBeNull();
-            result.Success.Should().BeTrue();
+        public PaymentServiceTests()
+        {
+            _accountDataStore = Substitute.For<IAccountDataStore>();
+            _validatorFactory = Substitute.For<IPaymentSchemeValidatorFactory>();
+            _sut = new PaymentService(_accountDataStore, _validatorFactory);
         }
 
-        [Theory]
-        [AutoData]
-        public void MakePayment_HasMatchingAccountNumber_ReturnsSuccessTrue(
-            [Frozen] IAccountDataStore accountDataStore,
-            PaymentService sut,
+        [Theory, AutoData]
+        public void MakePayment_WithValidRequest_ReturnsSuccessful(
+            string accountNumber,
             IFixture fixture)
         {
             // Arrange
-            string accountNumber = fixture.Create<string>();
+            var amount = fixture.Create<decimal>() % 1000 + 1; 
+            var balance = fixture.Create<decimal>() % 1000 + 1;
 
-            Account account = fixture
-                .Build<Account>()
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, balance)
                 .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.FasterPayments)
                 .Create();
 
-            MakePaymentRequest request = fixture
-                .Build<MakePaymentRequest>()
-                .With(x=> x.DebtorAccountNumber, accountNumber)
-                .Create();
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
 
-            accountDataStore
-                .GetAccount(accountNumber)
+            _accountDataStore
+                .GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
 
+            _validatorFactory
+                .GetValidator(request.PaymentScheme)
+                .Returns(validator);
+
             // Act
-            var result = sut.MakePayment(request: request);
+            var result = _sut.MakePayment(request);
 
             // Assert
-            result.Should().NotBeNull();
             result.Success.Should().BeTrue();
+            account.Balance.Should().Be(balance - amount);
+            _accountDataStore.Received(1).UpdateAccount(account);
         }
 
-        [Theory]
-        [AutoData]
-        public void MakePayment_NoMatchingAccountNumber_ReturnsSuccessFalse(
-            [Frozen] IAccountDataStore accountDataStore,
-            PaymentService sut,
+        [Theory, AutoData]
+        public void MakePayment_WithNullAccount_ReturnsUnsuccessful(
+            string accountNumber,
             IFixture fixture)
         {
             // Arrange
-            string accountNumber = fixture.Create<string>();
+            var amount = fixture.Create<decimal>() % 1000 + 1;
+            var balance = fixture.Create<decimal>() % 1000 + 1;
 
-            Account account = fixture
-                .Build<Account>()
-                .With(x => x.AccountNumber, accountNumber)
-                .Create();
-
-            MakePaymentRequest request = fixture
-                .Build<MakePaymentRequest>()
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
                 .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
                 .Create();
 
-            accountDataStore
-                .GetAccount(accountNumber)
-                .Returns(null as Account);
+            _accountDataStore.GetAccount(request.DebtorAccountNumber).Returns((Account)null);
 
             // Act
-            var result = sut.MakePayment(request: request);
+            var result = _sut.MakePayment(request);
 
             // Assert
-            result.Should().NotBeNull();
             result.Success.Should().BeFalse();
+            _accountDataStore.DidNotReceive().UpdateAccount(Arg.Any<Account>());
+        }
+
+        [Theory, AutoData]
+        public void MakePayment_WithUnsupportedPaymentScheme_ReturnsUnsuccessful(
+            string accountNumber,
+            IFixture fixture)
+        {
+            // Arrange
+            var amount = fixture.Create<decimal>() % 1000 + 1;
+            var balance = fixture.Create<decimal>() % 1000 + 1;
+
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, balance)
+                .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.Chaps)
+                .Create();
+
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(false);
+
+            _accountDataStore
+                .GetAccount(request.DebtorAccountNumber)
+                .Returns(account);
+
+            _validatorFactory
+                .GetValidator(request.PaymentScheme)
+                .Returns(validator);
+
+            // Act
+            var result = _sut.MakePayment(request);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            _accountDataStore.DidNotReceive().UpdateAccount(Arg.Any<Account>());
+        }
+
+        [Theory, AutoData]
+        public void MakePayment_WithSufficientBalance_DeductsAccountBalance(
+            string accountNumber,
+            IFixture fixture)
+        {
+            // Arrange
+            var amount = fixture.Create<decimal>() % 1000 + 1;
+            var balance = fixture.Create<decimal>() % 1000 + 1;
+
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, balance)
+                .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.FasterPayments)
+                .Create();
+
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _accountDataStore
+                .GetAccount(request.DebtorAccountNumber)
+                .Returns(account);
+
+            _validatorFactory
+                .GetValidator(request.PaymentScheme)
+                .Returns(validator);
+
+            // Act
+            var result = _sut.MakePayment(request);
+
+            // Assert
+            result.Success.Should().BeTrue();
+            account.Balance.Should().Be(balance - amount);
+        }
+
+        [Theory, AutoData]
+        public void MakePayment_WithSuccessfulPayment_CallsUpdateAccount(
+            string accountNumber,
+            IFixture fixture)
+        {
+            // Arrange
+            var amount = fixture.Create<decimal>() % 1000 + 1;
+            var balance = fixture.Create<decimal>() % 1000 + 1;
+
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, balance)
+                .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.FasterPayments)
+                .Create();
+
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _accountDataStore
+                .GetAccount(request.DebtorAccountNumber)
+                .Returns(account);
+
+            _validatorFactory
+                .GetValidator(request.PaymentScheme)
+                .Returns(validator);
+
+            // Act
+            var result = _sut.MakePayment(request);
+
+            // Assert
+            _accountDataStore.Received(1).UpdateAccount(account);
         }
     }
 }

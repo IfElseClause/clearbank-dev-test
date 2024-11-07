@@ -1,5 +1,4 @@
-﻿using AutoFixture.Xunit2;
-using AutoFixture;
+﻿using AutoFixture;
 using ClearBank.DeveloperTest.Types;
 using ClearBank.DeveloperTest.Validators;
 using FluentAssertions;
@@ -7,8 +6,6 @@ using Xunit;
 using System;
 using AutoFixture.AutoNSubstitute;
 using NSubstitute;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace ClearBank.DeveloperTest.Tests.Validators
 {
