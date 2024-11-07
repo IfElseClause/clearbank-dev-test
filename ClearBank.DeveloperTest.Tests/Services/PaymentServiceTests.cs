@@ -31,7 +31,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
         [Theory]
         [AutoData]
         public void MakePayment_HasMatchingAccountNumber_ReturnsSuccessTrue(
-            [Frozen] AccountDataStore accountDataStore,
+            [Frozen] IAccountDataStore accountDataStore,
             PaymentService sut,
             IFixture fixture)
         {
@@ -63,7 +63,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
         [Theory]
         [AutoData]
         public void MakePayment_NoMatchingAccountNumber_ReturnsSuccessFalse(
-            [Frozen] AccountDataStore accountDataStore,
+            [Frozen] IAccountDataStore accountDataStore,
             PaymentService sut,
             IFixture fixture)
         {

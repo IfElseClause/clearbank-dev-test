@@ -2,10 +2,15 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class BacsPaymentValidator : IPaymentValidator
+    internal class BacsPaymentValidator : IPaymentSchemeValidator
     {
-        public bool Validate(Account account, MakePaymentRequest paymentRequest)
-        {
+        public bool Validate(AllowedPaymentSchemes allowedPaymentSchemes)
+        {           
+            if (!allowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.Bacs))
+            {
+                return false;
+            }
+
             return true;
         }
     }

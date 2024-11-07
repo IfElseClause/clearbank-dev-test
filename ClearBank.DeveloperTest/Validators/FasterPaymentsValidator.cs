@@ -2,10 +2,15 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class FasterPaymentsValidator : IPaymentValidator
+    internal class FasterPaymentsValidator : IPaymentSchemeValidator
     {
-        public bool Validate(Account account, MakePaymentRequest paymentRequest)
+        public bool Validate(AllowedPaymentSchemes allowedPaymentSchemes)
         {
+            if (!allowedPaymentSchemes.HasFlag(AllowedPaymentSchemes.FasterPayments))
+            {
+                return false;
+            }
+
             return true;
         }
     }

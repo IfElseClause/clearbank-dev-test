@@ -14,7 +14,7 @@ namespace ClearBank.DeveloperTest.Validators
             _serviceProvider = serviceProvider;
         }
 
-        public IPaymentValidator GetValidator(PaymentScheme scheme)
+        public IPaymentSchemeValidator GetValidator(PaymentScheme scheme)
         {
             return scheme switch
             {

@@ -23,7 +23,7 @@ namespace ClearBank.DeveloperTest.Tests.Validators
             MakePaymentRequest paymentRequest = fixture.Create<MakePaymentRequest>();
 
             // Act
-            bool result = sut.Validate(account: account, paymentRequest: paymentRequest);
+            bool result = sut.Validate(allowedPaymentSchemes: account.AllowedPaymentSchemes);
 
             // Assert
             result.Should().BeTrue();
@@ -44,7 +44,7 @@ namespace ClearBank.DeveloperTest.Tests.Validators
             MakePaymentRequest paymentRequest = fixture.Create<MakePaymentRequest>();
 
             // Act
-            bool result = sut.Validate(account: account, paymentRequest: paymentRequest);
+            bool result = sut.Validate(allowedPaymentSchemes: account.AllowedPaymentSchemes);
 
             // Assert
             result.Should().BeFalse();
