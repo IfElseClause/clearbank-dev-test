@@ -12,14 +12,17 @@ namespace ClearBank.DeveloperTest.Services
         private readonly IAccountDataStore _accountDataStore;
         private readonly IPaymentSchemeValidatorFactory _validatorFactory;
         private readonly ILogger<PaymentService> _logger;
+        private readonly IBalanceValidator _balanceValidator;
         public PaymentService(
             IAccountDataStore accountDataStore,
             IPaymentSchemeValidatorFactory validatorFactory,
-            ILogger<PaymentService> logger)
+            ILogger<PaymentService> logger,
+            IBalanceValidator balanceValidator)
         {
             _accountDataStore = accountDataStore;
             _validatorFactory = validatorFactory;
             _logger = logger;
+            _balanceValidator = balanceValidator;
         }
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
@@ -42,6 +45,12 @@ namespace ClearBank.DeveloperTest.Services
                 if (!paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
                 {
                     _logger.LogWarning("Payment scheme validation failed for account {DebtorAccountNumber} and payment scheme {PaymentScheme}.", account.AccountNumber, request.PaymentScheme);
+                    return new MakePaymentResult() { Success = false };
+                }
+
+                if (!_balanceValidator.HasSufficientBalance(account, request.Amount))
+                {
+                    _logger.LogWarning("Insufficient balance for account {DebtorAccountNumber}. Payment amount: {Amount}, Account balance: {Balance}.", account.AccountNumber, request.Amount, account.Balance);
                     return new MakePaymentResult() { Success = false };
                 }
 
