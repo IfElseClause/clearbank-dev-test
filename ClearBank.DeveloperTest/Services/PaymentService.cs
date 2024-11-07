@@ -19,8 +19,6 @@ namespace ClearBank.DeveloperTest.Services
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
-            // Future - Wrap in a transaction and only commit if no exceptions.
-
             Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
 
             IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);

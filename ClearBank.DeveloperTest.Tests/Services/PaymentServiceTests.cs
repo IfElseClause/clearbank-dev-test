@@ -6,6 +6,7 @@ using ClearBank.DeveloperTest.Types;
 using ClearBank.DeveloperTest.Validators;
 using FluentAssertions;
 using NSubstitute;
+using System;
 using Xunit;
 
 namespace ClearBank.DeveloperTest.Tests.Services
@@ -29,7 +30,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             IFixture fixture)
         {
             // Arrange
-            var amount = fixture.Create<decimal>() % 1000 + 1; 
+            var amount = fixture.Create<decimal>() % 1000 + 1;
             var balance = fixture.Create<decimal>() % 1000 + 1;
 
             var request = fixture.Build<MakePaymentRequest>()
@@ -214,6 +215,52 @@ namespace ClearBank.DeveloperTest.Tests.Services
 
             // Assert
             _accountDataStore.Received(1).UpdateAccount(account);
+        }
+
+        [Theory, AutoData]
+        public void MakePayment_WithExceptionInTransactionScope_RollsBackTransaction(
+                string accountNumber,
+                IFixture fixture)
+        {
+            // Arrange
+            decimal initialBalance = 200m;
+            decimal amount = 100m;
+
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, initialBalance)
+                .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.FasterPayments)
+                .Create();
+
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _accountDataStore
+                .GetAccount(request.DebtorAccountNumber)
+                .Returns(account);
+
+            _validatorFactory
+                .GetValidator(request.PaymentScheme)
+                .Returns(validator);
+
+            _accountDataStore
+                .When(x => x.UpdateAccount(account))
+                .Do(_ => throw new Exception("Simulated failure during transaction"));
+
+            // Act
+            var result = _sut.MakePayment(request);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            account.Balance.Should().Be(initialBalance, "transaction should have rolled back due to exception");
         }
     }
 }
