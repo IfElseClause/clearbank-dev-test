@@ -17,6 +17,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
         private readonly IAccountDataStore _accountDataStore;
         private readonly IPaymentSchemeValidatorFactory _validatorFactory;
         private readonly ILogger<PaymentService> _logger;
+        private readonly IBalanceValidator _balanceValidator;
         private readonly PaymentService _sut;
 
         public PaymentServiceTests()
@@ -24,7 +25,8 @@ namespace ClearBank.DeveloperTest.Tests.Services
             _accountDataStore = Substitute.For<IAccountDataStore>();
             _validatorFactory = Substitute.For<IPaymentSchemeValidatorFactory>();
             _logger = Substitute.For<ILogger<PaymentService>>();
-            _sut = new PaymentService(_accountDataStore, _validatorFactory, _logger);
+            _balanceValidator = Substitute.For<IBalanceValidator>();
+            _sut = new PaymentService(_accountDataStore, _validatorFactory, _logger, _balanceValidator);
         }
 
         [Theory, AutoData]
@@ -51,6 +53,10 @@ namespace ClearBank.DeveloperTest.Tests.Services
             var validator = Substitute.For<IPaymentSchemeValidator>();
             validator
                 .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _balanceValidator
+                .HasSufficientBalance(account, amount)
                 .Returns(true);
 
             _accountDataStore
@@ -163,6 +169,10 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Validate(account.AllowedPaymentSchemes)
                 .Returns(true);
 
+            _balanceValidator
+                .HasSufficientBalance(account, amount)
+                .Returns(true);
+
             _accountDataStore
                 .GetAccount(request.DebtorAccountNumber)
                 .Returns(account);
@@ -178,6 +188,44 @@ namespace ClearBank.DeveloperTest.Tests.Services
             result.Success.Should().BeTrue();
             account.Balance.Should().Be(balance);
             _accountDataStore.Received(1).UpdateAccount(Arg.Is<Account>(x => x.Balance == balance - amount));
+        }
+
+        [Theory, AutoData]
+        public void MakePayment_WithInsufficientBalance_ReturnsUnsuccessful(
+            string accountNumber,
+            IFixture fixture)
+        {
+            // Arrange
+            var amount = fixture.Create<decimal>() % 1000 + 1;
+            var balance = fixture.Create<decimal>() % 1000 + 1;
+
+            var request = fixture.Build<MakePaymentRequest>()
+                .With(x => x.Amount, amount)
+                .With(x => x.DebtorAccountNumber, accountNumber)
+                .With(x => x.PaymentScheme, PaymentScheme.FasterPayments)
+                .Create();
+
+            var account = fixture.Build<Account>()
+                .With(x => x.Balance, balance)
+                .With(x => x.AccountNumber, accountNumber)
+                .With(x => x.AllowedPaymentSchemes, AllowedPaymentSchemes.FasterPayments)
+                .Create();
+
+            var validator = Substitute.For<IPaymentSchemeValidator>();
+            validator
+                .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _balanceValidator
+                .HasSufficientBalance(account, amount)
+                .Returns(false);
+
+            // Act
+            var result = _sut.MakePayment(request);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            _accountDataStore.DidNotReceive().UpdateAccount(Arg.Any<Account>());
         }
 
         [Theory, AutoData]
@@ -204,6 +252,10 @@ namespace ClearBank.DeveloperTest.Tests.Services
             var validator = Substitute.For<IPaymentSchemeValidator>();
             validator
                 .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _balanceValidator
+                .HasSufficientBalance(account, amount)
                 .Returns(true);
 
             _accountDataStore
@@ -245,6 +297,10 @@ namespace ClearBank.DeveloperTest.Tests.Services
             var validator = Substitute.For<IPaymentSchemeValidator>();
             validator
                 .Validate(account.AllowedPaymentSchemes)
+                .Returns(true);
+
+            _balanceValidator
+                .HasSufficientBalance(account, amount)
                 .Returns(true);
 
             _accountDataStore
