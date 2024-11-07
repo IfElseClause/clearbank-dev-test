@@ -10,10 +10,10 @@ namespace ClearBank.DeveloperTest.Services
         private readonly IPaymentSchemeValidatorFactory _validatorFactory;
 
         public PaymentService(
-            IAccountDataStoreFactory accountDataStoreFactory,
+            IAccountDataStore accountDataStore,
             IPaymentSchemeValidatorFactory validatorFactory)
         {
-            _accountDataStore = accountDataStoreFactory.Create();
+            _accountDataStore = accountDataStore;
             _validatorFactory = validatorFactory;
         }
 
@@ -25,9 +25,10 @@ namespace ClearBank.DeveloperTest.Services
 
             IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
 
-            if (account == null || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
+            if (account == null
+                || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
             {
-                return new MakePaymentResult() { Success = false }; // (optional) Create a MakeRequestResult builder to reduce boilerplate.
+                return new MakePaymentResult() { Success = false };
             }
 
             account.Balance -= request.Amount;
