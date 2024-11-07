@@ -9,6 +9,10 @@ using Xunit;
 
 namespace ClearBank.DeveloperTest.Tests.Services
 {
+    /*
+     * More tests should be added to cover more scenarios.
+     */
+
     public class PaymentServiceTests
     {
         [Theory]

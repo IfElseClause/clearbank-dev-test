@@ -19,13 +19,15 @@ namespace ClearBank.DeveloperTest.Services
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
+            // Future - Wrap in a transaction and only commit if no exceptions.
+
             Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
 
             IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
 
             if (account == null || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
             {
-                return new MakePaymentResult() { Success = false };
+                return new MakePaymentResult() { Success = false }; // (optional) Create a MakeRequestResult builder to reduce boilerplate.
             }
 
             account.Balance -= request.Amount;
