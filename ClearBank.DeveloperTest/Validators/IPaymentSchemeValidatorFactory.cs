@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    public interface IPaymentValidatorFactory
+    public interface IPaymentSchemeValidatorFactory
     {
         IPaymentSchemeValidator GetValidator(PaymentScheme scheme);
     }

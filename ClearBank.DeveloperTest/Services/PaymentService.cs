@@ -7,11 +7,11 @@ namespace ClearBank.DeveloperTest.Services
     public class PaymentService : IPaymentService
     {
         private readonly IAccountDataStore _accountDataStore;
-        private readonly IPaymentValidatorFactory _validatorFactory;
+        private readonly IPaymentSchemeValidatorFactory _validatorFactory;
 
         public PaymentService(
             IAccountDataStoreFactory accountDataStoreFactory,
-            IPaymentValidatorFactory validatorFactory)
+            IPaymentSchemeValidatorFactory validatorFactory)
         {
             _accountDataStore = accountDataStoreFactory.Create();
             _validatorFactory = validatorFactory;

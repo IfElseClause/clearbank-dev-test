@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class FasterPaymentsValidator : IPaymentSchemeValidator
+    internal class FasterPaymentSchemeValidator : IPaymentSchemeValidator
     {
         public bool Validate(AllowedPaymentSchemes allowedPaymentSchemes)
         {

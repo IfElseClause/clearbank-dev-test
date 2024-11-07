@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class ChapsPaymentValidator : IPaymentSchemeValidator
+    internal class ChapsPaymentSchemeValidator : IPaymentSchemeValidator
     {
         public bool Validate(AllowedPaymentSchemes allowedPaymentSchemes)
         {

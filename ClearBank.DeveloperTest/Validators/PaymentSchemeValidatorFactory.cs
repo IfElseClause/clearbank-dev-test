@@ -4,11 +4,11 @@ using System;
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class PaymentValidatorFactory : IPaymentValidatorFactory
+    internal class PaymentSchemeValidatorFactory : IPaymentSchemeValidatorFactory
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public PaymentValidatorFactory(
+        public PaymentSchemeValidatorFactory(
             IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -18,9 +18,9 @@ namespace ClearBank.DeveloperTest.Validators
         {
             return scheme switch
             {
-                PaymentScheme.Bacs => _serviceProvider.GetRequiredService<BacsPaymentValidator>(),
-                PaymentScheme.FasterPayments => _serviceProvider.GetRequiredService<FasterPaymentsValidator>(),
-                PaymentScheme.Chaps => _serviceProvider.GetRequiredService<ChapsPaymentValidator>(),
+                PaymentScheme.Bacs => _serviceProvider.GetRequiredService<BacsPaymentSchemeValidator>(),
+                PaymentScheme.FasterPayments => _serviceProvider.GetRequiredService<FasterPaymentSchemeValidator>(),
+                PaymentScheme.Chaps => _serviceProvider.GetRequiredService<ChapsPaymentSchemeValidator>(),
                 _ => throw new ArgumentException("Invalid payment scheme", nameof(scheme))
             };
         }
