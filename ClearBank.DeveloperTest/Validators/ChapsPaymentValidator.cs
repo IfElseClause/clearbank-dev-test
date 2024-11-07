@@ -2,7 +2,7 @@
 
 namespace ClearBank.DeveloperTest.Validators
 {
-    internal class BacsPaymentValidator : IPaymentValidator
+    internal class ChapsPaymentValidator : IPaymentValidator
     {
         public bool Validate(Account account, MakePaymentRequest paymentRequest)
         {

@@ -18,7 +18,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
             IFixture fixture)
         {
             // Arrange
-            Types.MakePaymentRequest request = fixture.Create<Types.MakePaymentRequest>();
+            var request = fixture.Create<MakePaymentRequest>();
 
             // Act
             var result = sut.MakePayment(request: request);
@@ -31,7 +31,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
         [Theory]
         [AutoData]
         public void MakePayment_HasMatchingAccountNumber_ReturnsSuccessTrue(
-            [Frozen] IAccountDataStore accountDataStore,
+            [Frozen] AccountDataStore accountDataStore,
             PaymentService sut,
             IFixture fixture)
         {
@@ -63,7 +63,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
         [Theory]
         [AutoData]
         public void MakePayment_NoMatchingAccountNumber_ReturnsSuccessFalse(
-            [Frozen] IAccountDataStore accountDataStore,
+            [Frozen] AccountDataStore accountDataStore,
             PaymentService sut,
             IFixture fixture)
         {
