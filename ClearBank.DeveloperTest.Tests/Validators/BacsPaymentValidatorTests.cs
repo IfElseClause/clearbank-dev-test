@@ -3,6 +3,7 @@ using AutoFixture;
 using Xunit;
 using FluentAssertions;
 using ClearBank.DeveloperTest.Types;
+using ClearBank.DeveloperTest.Validators;
 
 namespace ClearBank.DeveloperTest.Tests.Validators
 {
@@ -10,7 +11,7 @@ namespace ClearBank.DeveloperTest.Tests.Validators
     {
         [Theory]
         [AutoData]
-        public void Validate_AccountHasAllowsBacsPayments_ReturnsTrue(
+        internal void Validate_AccountHasAllowsBacsPayments_ReturnsTrue(
             BacsPaymentValidator sut,
             IFixture fixture)
         {
@@ -30,7 +31,7 @@ namespace ClearBank.DeveloperTest.Tests.Validators
 
         [Theory]
         [AutoData]
-        public void Validate_AccountDoesNotAllowBacsPayments_ReturnsFalse(
+        internal void Validate_AccountDoesNotAllowBacsPayments_ReturnsFalse(
             BacsPaymentValidator sut,
             IFixture fixture)
         {
@@ -46,7 +47,7 @@ namespace ClearBank.DeveloperTest.Tests.Validators
             bool result = sut.Validate(account: account, paymentRequest: paymentRequest);
 
             // Assert
-            result.Should().BeTrue();
+            result.Should().BeFalse();
         }
     }
 }

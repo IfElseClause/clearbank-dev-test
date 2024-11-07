@@ -4,6 +4,7 @@ using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Services;
 using ClearBank.DeveloperTest.Types;
 using FluentAssertions;
+using NSubstitute;
 using Xunit;
 
 namespace ClearBank.DeveloperTest.Tests.Services
@@ -81,7 +82,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
 
             accountDataStore
                 .GetAccount(accountNumber)
-                .Returns(null);
+                .Returns(null as Account);
 
             // Act
             var result = sut.MakePayment(request: request);
