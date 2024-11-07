@@ -10,3 +10,7 @@ Write tests to support the below.
 7. ~~Potential for MakePaymentResult builder to move intakstiation outside of the payment service.~~
 8. Convert Data/Models into record types to support immutability.
 9. Improve logging
+
+## Additional notes
+In the past I've used exceptions for error handling instead of returning a response object with a success flag. Reasoning behind using exceptions is to avoid the calling code ignoring the success flags which could lead to potential bugs.
+However, exceptions do come with a performance hit and in some scenarios can be less readable.
