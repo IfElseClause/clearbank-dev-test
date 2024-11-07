@@ -5,6 +5,7 @@ using ClearBank.DeveloperTest.Services;
 using ClearBank.DeveloperTest.Types;
 using ClearBank.DeveloperTest.Validators;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using System;
 using Xunit;
@@ -15,13 +16,15 @@ namespace ClearBank.DeveloperTest.Tests.Services
     {
         private readonly IAccountDataStore _accountDataStore;
         private readonly IPaymentSchemeValidatorFactory _validatorFactory;
+        private readonly ILogger<PaymentService> _logger;
         private readonly PaymentService _sut;
 
         public PaymentServiceTests()
         {
             _accountDataStore = Substitute.For<IAccountDataStore>();
             _validatorFactory = Substitute.For<IPaymentSchemeValidatorFactory>();
-            _sut = new PaymentService(_accountDataStore, _validatorFactory);
+            _logger = Substitute.For<ILogger<PaymentService>>();
+            _sut = new PaymentService(_accountDataStore, _validatorFactory, _logger);
         }
 
         [Theory, AutoData]

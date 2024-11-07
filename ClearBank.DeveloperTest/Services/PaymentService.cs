@@ -1,6 +1,8 @@
 ﻿using ClearBank.DeveloperTest.Data;
 using ClearBank.DeveloperTest.Types;
 using ClearBank.DeveloperTest.Validators;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Transactions;
 
 namespace ClearBank.DeveloperTest.Services
@@ -9,44 +11,57 @@ namespace ClearBank.DeveloperTest.Services
     {
         private readonly IAccountDataStore _accountDataStore;
         private readonly IPaymentSchemeValidatorFactory _validatorFactory;
-
+        private readonly ILogger<PaymentService> _logger;
         public PaymentService(
             IAccountDataStore accountDataStore,
-            IPaymentSchemeValidatorFactory validatorFactory)
+            IPaymentSchemeValidatorFactory validatorFactory,
+            ILogger<PaymentService> logger)
         {
             _accountDataStore = accountDataStore;
             _validatorFactory = validatorFactory;
+            _logger = logger;
         }
 
         public MakePaymentResult MakePayment(MakePaymentRequest request)
         {
-            using (var scope = new TransactionScope())
+            _logger.LogInformation("Starting payment process for debtor account {DebtorAccountNumber} with amount {Amount} and payment scheme {PaymentScheme}.", request.DebtorAccountNumber, request.Amount, request.PaymentScheme);
+
+            try
             {
-                try
+                Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
+                if (account == null)
                 {
-                    Account account = _accountDataStore.GetAccount(request.DebtorAccountNumber);
+                    _logger.LogWarning("Account not found for debtor account number {DebtorAccountNumber}. Payment cannot proceed.", request.DebtorAccountNumber);
+                    return new MakePaymentResult() { Success = false };
+                }
 
-                    IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
+                _logger.LogInformation("Account found for debtor account number {DebtorAccountNumber} with balance {Balance}.",
+                                       account.AccountNumber, account.Balance);
 
-                    if (account == null
-                        || !paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
-                    {
-                        return new MakePaymentResult() { Success = false };
-                    }
+                IPaymentSchemeValidator paymentSchemeValidator = _validatorFactory.GetValidator(request.PaymentScheme);
+                if (!paymentSchemeValidator.Validate(account.AllowedPaymentSchemes))
+                {
+                    _logger.LogWarning("Payment scheme validation failed for account {DebtorAccountNumber} and payment scheme {PaymentScheme}.", account.AccountNumber, request.PaymentScheme);
+                    return new MakePaymentResult() { Success = false };
+                }
 
+                using (var scope = new TransactionScope())
+                {
                     var updatedAccount = account with { Balance = account.Balance - request.Amount };
 
                     _accountDataStore.UpdateAccount(updatedAccount);
-
+                    _logger.LogInformation("Account {DebtorAccountNumber} balance updated from {OldBalance} to {NewBalance}.", account.AccountNumber, account.Balance, updatedAccount.Balance);
                     scope.Complete();
                 }
-                catch
-                {
-                    return new MakePaymentResult() { Success = false };
-                }
-            }
 
-            return new MakePaymentResult() { Success = true };
+                _logger.LogInformation("Payment process completed successfully for debtor account {DebtorAccountNumber}.", request.DebtorAccountNumber);
+                return new MakePaymentResult() { Success = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while processing the payment for debtor account {DebtorAccountNumber}.", request.DebtorAccountNumber);
+                return new MakePaymentResult() { Success = false };
+            }
         }
     }
 }
