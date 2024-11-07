@@ -7,6 +7,6 @@ Write tests to support the below.
 4. Refactor to add an PaymentSchemeValidator factory to provide the instantiation of the correct validator for the payment scheme.
 5. Simplify logic in payment service using the above.
 6. Wrap logic in a transaction to make sure making payments are atomic and rollback as expected.
-7. Potential for MakePaymentResult builder to move intakstiation outside of the payment service.
+7. ~~Potential for MakePaymentResult builder to move intakstiation outside of the payment service.~~
 8. Convert Data/Models into record types to support immutability.
 9. Improve logging
