@@ -14,3 +14,19 @@ Write tests to support the below.
 ## Additional notes
 In the past I've used exceptions for error handling instead of returning a response object with a success flag. Reasoning behind using exceptions is to avoid the calling code ignoring the success flags which could lead to potential bugs.
 However, exceptions do come with a performance hit and in some scenarios can be less readable.
+
+Inline with point 8. I have tried to make a habit out of defining types using records. For example, `record AccountBalance(decimal Amount);`, this would allow the develpoer to use types instead of guessing what number type to use.
+In the example above, we could take it further by defining a monetary value record, such as:
+```
+public enum CurrencyType
+{
+    GBP,
+    USD,
+    EUR,
+}
+
+public record MoneyAmount(decimal Amount, CurrencyType Type = CurrencyType.GBP);
+
+public record AccountBalance(MoneyAmount Money);
+```
+For brevity and time constraints, I will leave this out.

@@ -1,6 +1,4 @@
-﻿using AutoFixture;
-using AutoFixture.Xunit2;
-using ClearBank.DeveloperTest.Types;
+﻿using AutoFixture.Xunit2;
 using ClearBank.DeveloperTest.Validators;
 using FluentAssertions;
 using Xunit;
@@ -16,20 +14,14 @@ namespace ClearBank.DeveloperTest.Tests.Validators
         [InlineAutoData(0, 50, false)]
         [InlineAutoData(-100, 50, false)]
         [InlineAutoData(100, 150, false)]
-        internal void Validate_ReturnsExpectedResult_WhenCheckingIfAccountAllowsBacsPayments(
+        internal void HasSufficientBalance(
             decimal balance,
             decimal paymentAmount,
             bool expectedOutcome,
-            BalanceValidator sut,
-            IFixture fixture)
+            BalanceValidator sut)
         {
-            // Arrange
-            var account = fixture.Build<Account>()
-                .With(x => x.Balance, balance)
-                .Create();
-
             // Act
-            bool result = sut.HasSufficientBalance(account: account, amount: paymentAmount);
+            bool result = sut.HasSufficientBalance(balance: balance, amount: paymentAmount);
 
             // Assert
             result.Should().Be(expectedOutcome);

@@ -48,7 +48,7 @@ namespace ClearBank.DeveloperTest.Services
                     return new MakePaymentResult() { Success = false };
                 }
 
-                if (!_balanceValidator.HasSufficientBalance(account, request.Amount))
+                if (!_balanceValidator.HasSufficientBalance(account.Balance, request.Amount))
                 {
                     _logger.LogWarning("Insufficient balance for account {DebtorAccountNumber}. Payment amount: {Amount}, Account balance: {Balance}.", account.AccountNumber, request.Amount, account.Balance);
                     return new MakePaymentResult() { Success = false };

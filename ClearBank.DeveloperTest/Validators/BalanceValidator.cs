@@ -1,12 +1,10 @@
-﻿using ClearBank.DeveloperTest.Types;
-
-namespace ClearBank.DeveloperTest.Validators
+﻿namespace ClearBank.DeveloperTest.Validators
 {
-    internal class BalanceValidator
+    internal class BalanceValidator : IBalanceValidator
     {
-        public bool HasSufficientBalance(Account account, decimal amount)
+        public bool HasSufficientBalance(decimal balance, decimal amount)
         {
-            return account.Balance >= amount;
+            return balance >= amount;
         }
     }
 }
