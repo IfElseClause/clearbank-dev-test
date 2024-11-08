@@ -14,7 +14,12 @@ namespace ClearBank.DeveloperTest.Tests.Validators
         [InlineAutoData(0, 50, false)]
         [InlineAutoData(-100, 50, false)]
         [InlineAutoData(100, 150, false)]
-        internal void HasSufficientBalance(
+        [InlineAutoData(100, -50, true)]
+        [InlineAutoData(0.0001, 0.00005, true)]
+        [InlineAutoData(0.00005, 0.0001, false)]
+        [InlineAutoData(100_000_000, 100_000_000, true)]
+        [InlineAutoData(100_000_000, 100_000_001, false)]
+        internal void HasSufficientBalance_ReturnsExpectedOutcome(
             decimal balance,
             decimal paymentAmount,
             bool expectedOutcome,

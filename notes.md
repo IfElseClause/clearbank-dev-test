@@ -12,8 +12,10 @@ Write tests to support the below.
 9. Improve logging
 
 ## Additional notes
-In the past I've used exceptions for error handling instead of returning a response object with a success flag. Reasoning behind using exceptions is to avoid the calling code ignoring the success flags which could lead to potential bugs.
-However, exceptions do come with a performance hit and in some scenarios can be less readable.
+In the past I've used exceptions for error handling instead of returning a Result object with a success flag. 
+Our reasoning behind using exceptions is to avoid the calling code ignoring the success flags which could lead to potential bugs.
+However, exceptions do come with a performance hit and in some scenarios can be less readable. I've left in the Result type as to not change the method signature.
+An improvement might be to create a generic `Result<TSuccess,TError>` class, which can be inhereted to improve consistency throughout the code base.
 
 Inline with point 8. I have tried to make a habit out of defining types using records. For example, `record AccountBalance(decimal Amount);`, this would allow the develpoer to use types instead of guessing what number type to use.
 In the example above, we could take it further by defining a monetary value record, such as:

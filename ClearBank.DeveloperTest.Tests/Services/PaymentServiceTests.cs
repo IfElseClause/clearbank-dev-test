@@ -56,7 +56,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(true);
 
             _balanceValidator
-                .HasSufficientBalance(account, amount)
+                .HasSufficientBalance(account.Balance, amount)
                 .Returns(true);
 
             _accountDataStore
@@ -170,7 +170,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(true);
 
             _balanceValidator
-                .HasSufficientBalance(account, amount)
+                .HasSufficientBalance(account.Balance, amount)
                 .Returns(true);
 
             _accountDataStore
@@ -217,7 +217,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(true);
 
             _balanceValidator
-                .HasSufficientBalance(account, amount)
+                .HasSufficientBalance(account.Balance, amount)
                 .Returns(false);
 
             // Act
@@ -255,7 +255,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(true);
 
             _balanceValidator
-                .HasSufficientBalance(account, amount)
+                .HasSufficientBalance(account.Balance, amount)
                 .Returns(true);
 
             _accountDataStore
@@ -300,7 +300,7 @@ namespace ClearBank.DeveloperTest.Tests.Services
                 .Returns(true);
 
             _balanceValidator
-                .HasSufficientBalance(account, amount)
+                .HasSufficientBalance(account.Balance, amount)
                 .Returns(true);
 
             _accountDataStore
